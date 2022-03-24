@@ -6,10 +6,7 @@ import (
 
 func TestEncrypter_Encrypt(t *testing.T) {
 	dataToEncrypt := "testdatatestdatatestdatatestdatatestdatatestdata1234"
-	e := encrypter{
-		key: "bhXRirFB8IaQxxjm",
-		iv:  "oZDRWCHryRtlVA1I",
-	}
+	e := NewEncypter("bhXRirFB8IaQxxjm", "oZDRWCHryRtlVA1I")
 	resultData, err := e.Encrypt(dataToEncrypt)
 	if err != nil {
 		t.Fatal(err)

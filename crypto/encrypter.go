@@ -6,22 +6,20 @@ import (
 	"strings"
 )
 
-const (
-	EncrypterVersion1 = "v1"
-)
-
 type Encrypter interface {
 	Encrypt(data string) (string, error)
 	Decrypt(data string) (string, error)
 }
 
-type result struct {
-	Version string    `json:"version"`
-	Length  uint32    `json:"length"`
-	V1      *resultV1 `json:"v1,omitempty"`
+func NewEncypter(key, iv string) Encrypter {
+	return encrypter{
+		key: key,
+		iv:  iv,
+	}
 }
 
-type resultV1 struct {
+type result struct {
+	Length          uint32   `json:"length"`
 	EncryptedChunks []string `json:"encrypted_chunks"`
 	chunks          []string
 }
@@ -37,7 +35,7 @@ type encrypter struct {
 }
 
 func (e encrypter) Encrypt(data string) (string, error) {
-	r, err := e.encryptV1(data)
+	r, err := e.encrypt(data)
 	if err != nil {
 		return "", err
 	}
@@ -54,24 +52,17 @@ func (e encrypter) Decrypt(data string) (string, error) {
 		return "", err
 	}
 
-	switch r.Version {
-	case EncrypterVersion1:
-		return e.decryptV1(r.V1, r.Length)
-	}
-
-	return "", nil
+	return e.decrypt(r)
 }
 
-func (e encrypter) encryptV1(data string) (result, error) {
+func (e encrypter) encrypt(data string) (result, error) {
 	var r = result{
-		Version: EncrypterVersion1,
-		Length:  uint32(len(data)),
-		V1:      &resultV1{},
+		Length: uint32(len(data)),
 	}
-	r.V1.chunks = e.splitToChunks(data, 16)
+	r.chunks = e.splitToChunks(data, 16)
 	r.Length = uint32(len(data))
 
-	for _, chunk := range r.V1.chunks {
+	for _, chunk := range r.chunks {
 		if len(chunk) != 16 {
 			chunk = e.appendTo(chunk, 16)
 		}
@@ -79,13 +70,13 @@ func (e encrypter) encryptV1(data string) (result, error) {
 		if err != nil {
 			return result{}, err
 		}
-		r.V1.EncryptedChunks = append(r.V1.EncryptedChunks, base64.StdEncoding.EncodeToString([]byte(encryptedChunk)))
+		r.EncryptedChunks = append(r.EncryptedChunks, base64.StdEncoding.EncodeToString([]byte(encryptedChunk)))
 	}
 
 	return r, nil
 }
 
-func (e encrypter) decryptV1(data *resultV1, length uint32) (string, error) {
+func (e encrypter) decrypt(data result) (string, error) {
 	for _, chunk := range data.EncryptedChunks {
 		decoded, err := base64.StdEncoding.DecodeString(chunk)
 		if err != nil {
@@ -98,7 +89,7 @@ func (e encrypter) decryptV1(data *resultV1, length uint32) (string, error) {
 		data.chunks = append(data.chunks, decrypted)
 	}
 	res := strings.Join(data.chunks, "")
-	return res[0:length], nil
+	return res[0:data.Length], nil
 }
 
 func (e encrypter) splitToChunks(s string, n int) []string {
