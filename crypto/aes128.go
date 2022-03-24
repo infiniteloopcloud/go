@@ -19,7 +19,7 @@ type AES128 struct{}
 // Encrypt the main encryption endpoint where the plaintext encrypted with the
 // arbitrary length key and the constant initialization vector
 func (a AES128) Encrypt(plaintext, key string, iv []byte) (string, error) {
-	if err := a.validateEncrypt(plaintext, key); err != nil {
+	if err := a.validateEncrypt(plaintext); err != nil {
 		return "", err
 	}
 	keyHex, err := Padding(key, 16)
@@ -81,7 +81,7 @@ func (a AES128) decrypt(ciphertext string, key string, iv []byte) (string, error
 }
 
 // validate the parameters of the Encrypt, to make sure everything is right for a correct CBC encryption
-func (a AES128) validateEncrypt(plaintext, key string) error {
+func (a AES128) validateEncrypt(plaintext string) error {
 	// Set of rules to ensure high entropy
 	if len(plaintext) != 16 {
 		return ErrAES128Length

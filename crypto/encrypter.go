@@ -25,7 +25,10 @@ type result struct {
 }
 
 func (r result) toString() string {
-	data, _ := json.Marshal(r)
+	data, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
 	return base64.StdEncoding.EncodeToString(data)
 }
 
