@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
-	"log"
 	"math"
 	"os"
 )
@@ -84,14 +82,14 @@ func (h *Handler) ReplaceMultiple(changes map[string][]*ReplaceOpts) error {
 func (h *Handler) replaceMultipleInFile(path string, replaces []*ReplaceOpts) error {
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer file.Close()
 
 	// create temp file
 	tmp, err := os.Create(file.Name() + "_updated")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer tmp.Close()
 
@@ -124,8 +122,7 @@ func (h *Handler) replaceMultipleInFile(path string, replaces []*ReplaceOpts) er
 func (h Handler) searchFile(path, searchFor, fileID string) []SearchResult {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		panic(err)
 	}
 	defer f.Close()
 	return h.searchScanner(f, searchFor, fileID)

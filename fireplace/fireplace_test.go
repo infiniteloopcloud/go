@@ -3,6 +3,7 @@ package fireplace
 import (
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strings"
@@ -22,9 +23,9 @@ func TestHandler_Search(t *testing.T) {
 	if len(result) != 1 {
 		t.Fatal("result length must be 1")
 	}
-	fmt.Println(result[0].FileID)
-	fmt.Println(result[0].LineNumber)
-	fmt.Println(result[0].LineContent)
+	t.Log(result[0].FileID)
+	t.Log(result[0].LineNumber)
+	t.Log(result[0].LineContent)
 }
 
 func TestHandler_SearchMultipleResult(t *testing.T) {
@@ -40,11 +41,11 @@ func TestHandler_SearchMultipleResult(t *testing.T) {
 	if len(results) < 1 {
 		t.Fatal("results length must be greater than 0")
 	}
-	fmt.Println(len(results))
+	t.Log(len(results))
 	for _, result := range results {
-		fmt.Println(result.FileID)
-		fmt.Println(result.LineNumber)
-		fmt.Println(result.LineContent)
+		t.Log(result.FileID)
+		t.Log(result.LineNumber)
+		t.Log(result.LineContent)
 	}
 }
 
@@ -165,9 +166,8 @@ func BenchmarkHandler_Search(b *testing.B) {
 
 func pseudoUUID() (uuid string) {
 	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		fmt.Println("Error: ", err)
+	if _, err := rand.Read(b); err != nil {
+		log.Println("Error: ", err)
 		return
 	}
 
