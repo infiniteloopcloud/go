@@ -57,6 +57,39 @@ func main() {
 }
 ```
 
+#### Encrypt/Decrypt
+
+This functionality makes it easier to encrypt arbitrary length strings with AES-128
+
+```go
+package main
+
+import (
+	"log"
+
+	"github.com/infiniteloopcloud/crypto"
+)
+
+func main() {
+	dataToEncrypt := "testdatatestdatatestdatatestdatatestdatatestdata1234"
+
+	// NOTE: The key and the IV always should be 16 length
+	e := crypto.NewEncypter("bhXRirFB8IaQxxjm", "oZDRWCHryRtlVA1I")
+	resultData, err := e.Encrypt(dataToEncrypt)
+	if err != nil {
+		// handle error
+	}
+
+	decrypted, err := e.Decrypt(resultData)
+	if err != nil {
+		// handle error
+	}
+	if decrypted != dataToEncrypt {
+		log.Printf("Decrypted is not the original data, original: %s, decrypted: %s", dataToEncrypt, decrypted)
+	}
+}
+```
+
 #### Elliptic curve helpers
 
 - `MarshalECPublicKey` accept an ecdsa.PublicKey and marshal it to a compressed shareable format
