@@ -1,6 +1,7 @@
 package jwt_test
 
 import (
+	"context"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,6 +16,7 @@ var testIssuer = "test issuer"
 
 //nolint:cyclop // cyclomatic complexity was too large because of the asserts
 func TestJwtECDSA_CreateAndVerify(t *testing.T) {
+	ctx := context.Background()
 	token := Token{
 		Token:     uuid.New().String(),
 		UserID:    "test_1234",
