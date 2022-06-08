@@ -1,7 +1,6 @@
 package jwt_test
 
 import (
-	"context"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,7 +15,6 @@ var testIssuer = "test issuer"
 
 //nolint:cyclop // cyclomatic complexity was too large because of the asserts
 func TestJwtECDSA_CreateAndVerify(t *testing.T) {
-	ctx := context.WithValue(context.Background(), jwt.ClientHost, "test_client_host")
 	token := Token{
 		Token:     uuid.New().String(),
 		UserID:    "test_1234",
@@ -33,7 +31,8 @@ func TestJwtECDSA_CreateAndVerify(t *testing.T) {
 		Status:   1<<63 | 1<<62 | 1<<2 | 1<<1 | 1,
 	}
 	result, err := jwt.Create(ctx, jwt.Metadata{
-		Issuer: testIssuer,
+		Issuer:     testIssuer,
+		ClientHost: "test_client_host",
 	}, user, token)
 	if err != nil {
 		t.Error(err)
@@ -44,7 +43,8 @@ func TestJwtECDSA_CreateAndVerify(t *testing.T) {
 	}
 
 	claims, err := jwt.Verify(ctx, jwt.Metadata{
-		Issuer: testIssuer,
+		Issuer:     testIssuer,
+		ClientHost: "test_client_host",
 	}, result)
 	if err != nil {
 		t.Error(err)
