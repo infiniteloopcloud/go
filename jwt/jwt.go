@@ -11,18 +11,14 @@ import (
 	"time"
 
 	"github.com/infiniteloopcloud/go/crypto"
-	"github.com/infiniteloopcloud/log"
 	"github.com/pascaldekloe/jwt"
 )
 
 type Metadata struct {
 	PrivateKey string
 	Issuer     string
+	ClientHost string
 }
-
-var (
-	ClientHost log.ContextField = "client_host"
-)
 
 // DefaultPrivateKey is for NON-PRODUCTION use
 //nolint:lll
@@ -71,11 +67,7 @@ func Create(ctx context.Context, meta Metadata, claimsContainer ...claimsParser)
 		}
 	}
 
-	ch, err := getClientHost(ctx)
-	if err != nil {
-		return nil, err
-	}
-	c.Audiences = []string{ch}
+	c.Audiences = []string{meta.ClientHost}
 
 	c.Issuer = meta.Issuer
 
@@ -107,23 +99,11 @@ func Verify(ctx context.Context, meta Metadata, t []byte) (*jwt.Claims, error) {
 		return nil, ErrJWTExpired
 	}
 
-	ch, err := getClientHost(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !claims.AcceptAudience(ch) {
+	if !claims.AcceptAudience(meta.ClientHost) {
 		return nil, ErrInvalidAudience
 	}
 
 	return claims, nil
-}
-
-func getClientHost(ctx context.Context) (string, error) {
-	ctxVal := ctx.Value(ClientHost)
-	if v, ok := ctxVal.(string); ok {
-		return v, nil
-	}
-	return "", errors.New("client host not defined")
 }
 
 func getPrivateKey(meta Metadata) (*ecdsa.PrivateKey, error) {
