@@ -14,6 +14,7 @@ import (
 
 var testIssuer = "test issuer"
 
+//nolint:cyclop // cyclomatic complexity was too large because of the asserts
 func TestJwtECDSA_CreateAndVerify(t *testing.T) {
 	ctx := context.Background()
 	token := Token{

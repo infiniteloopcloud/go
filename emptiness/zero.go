@@ -8,6 +8,7 @@ type IsZeroer interface {
 	IsZero() bool
 }
 
+//nolint:cyclop
 func IsZero(a interface{}) bool {
 	v := reflect.ValueOf(a)
 	rt := v.Type()
