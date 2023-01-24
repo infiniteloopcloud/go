@@ -1,30 +1,34 @@
 package cookie
 
-import "net/http"
-
-var (
-	cookieDomain = ""
-	cookieSecure = false
+import (
+	"net/http"
+	"regexp"
 )
 
-func SetHTTPOnly(w http.ResponseWriter, k, v string) {
-	setCookie(w, k, v, opts{HttpOnly: true})
+var (
+	cookieDomainRegex = &regexp.Regexp{}
+	cookieSecure      = false
+	refererHeaderKey  = "Referer"
+)
+
+func SetHTTPOnly(r *http.Request, w http.ResponseWriter, k, v string) {
+	setCookie(r, w, k, v, opts{HttpOnly: true})
 }
 
-func DeleteHTTPOnly(w http.ResponseWriter, k string) {
-	setCookie(w, k, "", opts{Remove: true, HttpOnly: true})
+func DeleteHTTPOnly(r *http.Request, w http.ResponseWriter, k string) {
+	setCookie(r, w, k, "", opts{Remove: true, HttpOnly: true})
 }
 
-func Set(w http.ResponseWriter, k, v string) {
-	setCookie(w, k, v, opts{})
+func Set(r *http.Request, w http.ResponseWriter, k, v string) {
+	setCookie(r, w, k, v, opts{})
 }
 
-func Delete(w http.ResponseWriter, k string) {
-	setCookie(w, k, "", opts{Remove: true})
+func Delete(r *http.Request, w http.ResponseWriter, k string) {
+	setCookie(r, w, k, "", opts{Remove: true})
 }
 
-func SetDomain(d string) {
-	cookieDomain = d
+func SetDomain(r *regexp.Regexp) {
+	cookieDomainRegex = r
 }
 
 func SetSecure(s bool) {
@@ -36,7 +40,7 @@ type opts struct {
 	HttpOnly bool
 }
 
-func setCookie(w http.ResponseWriter, name, value string, opts opts) {
+func setCookie(r *http.Request, w http.ResponseWriter, name, value string, opts opts) {
 	c := http.Cookie{
 		Name:     name,
 		Value:    value,
@@ -54,7 +58,9 @@ func setCookie(w http.ResponseWriter, name, value string, opts opts) {
 		c.MaxAge = 3 * 60 * 60
 	}
 
-	c.Domain = cookieDomain
+	if r != nil && cookieDomainRegex.MatchString(r.Header.Get(refererHeaderKey)) {
+		c.Domain = cookieDomainRegex.FindString(r.Header.Get(refererHeaderKey))
+	}
 
 	if cookieSecure {
 		c.Secure = true
