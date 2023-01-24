@@ -273,8 +273,6 @@ linters:
   disable:
     - ineffassign
   enable:
-    - cyclop
-#    - dupl # TODO remove it for now
     - errcheck
     - errorlint
     - forbidigo
