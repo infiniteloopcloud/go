@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
@@ -97,4 +98,8 @@ func MigrationTool(conn string, down bool, opts Opts, embeds ...embed.FS) {
 		log.Error(ctx, err, "unable to process migration")
 	}
 	log.Info(ctx, "migration succeed")
+}
+
+func PrepareCockroach(conn string) string {
+	return strings.Replace(conn, "postgres://", "cockroach://", 1)
 }
