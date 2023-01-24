@@ -60,6 +60,14 @@ output:
 
 # all available settings of specific linters
 linters-settings:
+  cyclop:
+    # the maximal code complexity to report
+    max-complexity: 15
+    # the maximal average package complexity. If it's higher than 0.0 (float) the check is enabled (default 0.0)
+    package-average: 0.0
+    # should ignore tests (default false)
+    skip-tests: false
+
   dupl:
     # tokens count to trigger issue, 150 by default
     threshold: 150
@@ -72,6 +80,14 @@ linters-settings:
     # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
     # default is false: such cases aren't reported by default.
     check-blank: true
+
+  errorlint:
+    # Check whether fmt.Errorf uses the %w verb for formatting errors. See the readme for caveats
+    errorf: true
+    # Check for plain type assertions and type switches
+    asserts: false # sometimes we don't want to use errors.As, just simple cast if we can
+    # Check for plain error comparisons
+    comparison: true
 
   forbidigo:
     # Forbid the following identifiers (identifiers are written using regexp):
@@ -265,7 +281,10 @@ linters:
   disable:
     - ineffassign
   enable:
+    - cyclop
+#    - dupl # TODO remove it for now
     - errcheck
+    - errorlint
     - forbidigo
     - gocognit
     - nestif
