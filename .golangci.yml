@@ -60,14 +60,6 @@ output:
 
 # all available settings of specific linters
 linters-settings:
-  cyclop:
-    # the maximal code complexity to report
-    max-complexity: 15
-    # the maximal average package complexity. If it's higher than 0.0 (float) the check is enabled (default 0.0)
-    package-average: 0.0
-    # should ignore tests (default false)
-    skip-tests: false
-
   dupl:
     # tokens count to trigger issue, 150 by default
     threshold: 150
