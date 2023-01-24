@@ -73,14 +73,6 @@ linters-settings:
     # default is false: such cases aren't reported by default.
     check-blank: true
 
-  errorlint:
-    # Check whether fmt.Errorf uses the %w verb for formatting errors. See the readme for caveats
-    errorf: true
-    # Check for plain type assertions and type switches
-    asserts: false # sometimes we don't want to use errors.As, just simple cast if we can
-    # Check for plain error comparisons
-    comparison: true
-
   forbidigo:
     # Forbid the following identifiers (identifiers are written using regexp):
     forbid:
@@ -274,7 +266,6 @@ linters:
     - ineffassign
   enable:
     - errcheck
-    - errorlint
     - forbidigo
     - gocognit
     - nestif
