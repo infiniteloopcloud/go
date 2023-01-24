@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
       - uses: actions/checkout@v2
+      - run: go mod tidy
       - run: go mod vendor
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
