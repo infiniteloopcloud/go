@@ -4,8 +4,8 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -59,7 +59,7 @@ func FromEmbeds(opts Opts, embeds ...embed.FS) (afero.Fs, error) {
 				if err != nil {
 					return err
 				}
-				c, err := ioutil.ReadAll(asd)
+				c, err := io.ReadAll(asd)
 				if err != nil {
 					return err
 				}

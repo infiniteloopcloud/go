@@ -9,6 +9,7 @@ import (
 )
 
 // DefaultPrivateKey is for NON-PRODUCTION use
+//
 //nolint:lll
 const DefaultPrivateKey = "MHcCAQEEIMFk+5s8b1hHM6W98IqPgMzUSc8LDJTHqQ2kdYskM4ASoAoGCCqGSM49AwEHoUQDQgAEP0qVlnDM/hlIAg7pzixSgtZfpH2f5C9lw7B/ZZb0bTB2QzyrRCyKeIwzQ0oqMVTLJ7oVvZZshsCDmuv4vDjZQw=="
 
