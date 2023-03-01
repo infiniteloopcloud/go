@@ -85,7 +85,7 @@ func MigrationTool(conn string, down bool, opts Opts, embeds ...embed.FS) {
 		return
 	}
 	if m == nil {
-		log.Error(ctx, errors.New("migration is nil, try to set DATABASE_CONNECTION to cockroach"), "unable to process migration")
+		log.Error(ctx, errors.New("migration is nil"), "unable to process migration")
 		return
 	}
 	if down {

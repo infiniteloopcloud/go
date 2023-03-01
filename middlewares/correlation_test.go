@@ -18,7 +18,7 @@ func TestCorrelation(t *testing.T) {
 
 	r.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		cid := ctx.Value(hyper.CorrelationID)
+		cid := ctx.Value(log.CorrelationID)
 		assert.Equal(t, "test_correlation_id", cid)
 
 		w.WriteHeader(http.StatusOK)
@@ -41,8 +41,8 @@ func TestCorrelation(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	ctx := context.WithValue(context.Background(), hyper.CorrelationID, "test_correlation_id")
-	req.Header = hyper.IntoHeader(ctx, req.Header, map[string]log.ContextField{})
+	ctx := context.WithValue(context.Background(), log.CorrelationID, "test_correlation_id")
+	req.Header = hyper.IntoHeader(ctx, req.Header, map[string]log.ContextField{string(log.CorrelationID): log.CorrelationID})
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
