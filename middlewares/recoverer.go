@@ -1,7 +1,7 @@
 package middlewares
 
 // The original work was derived from chi's middleware, source:
-// https://github.com/zenazn/goji/tree/master/web/middleware
+// https://github.com/go-chi/chi/tree/master/web/middleware
 
 import (
 	"bytes"
