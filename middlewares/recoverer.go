@@ -31,6 +31,7 @@ func Recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
+				//nolint:errorlint
 				if rvr == http.ErrAbortHandler {
 					// we don't recover http.ErrAbortHandler so the response
 					// to the client is aborted, this should not be logged
@@ -61,6 +62,7 @@ func PrintPrettyStack(rvr interface{}) {
 	debugStack := debug.Stack()
 	out, err := RecoverParser.Parse(debugStack, rvr)
 	if err == nil {
+		//nolint:errcheck
 		recovererErrorWriter.Write(out)
 	} else {
 		// print stdlib output as a fallback
@@ -120,11 +122,12 @@ func (s prettyStack) Parse(debugStack []byte, rvr interface{}) ([]byte, error) {
 
 func (s prettyStack) decorateLine(line string, useColor bool, num int) (string, error) {
 	line = strings.TrimSpace(line)
-	if strings.HasPrefix(line, "\t") || strings.Contains(line, ".go:") {
+	switch {
+	case strings.HasPrefix(line, "\t") || strings.Contains(line, ".go:"):
 		return s.decorateSourceLine(line, useColor, num)
-	} else if strings.HasSuffix(line, ")") {
+	case strings.HasSuffix(line, ")"):
 		return s.decorateFuncCallLine(line, useColor, num)
-	} else {
+	default:
 		if strings.HasPrefix(line, "\t") {
 			return strings.Replace(line, "\t", "      ", 1), nil
 		} else {
@@ -213,20 +216,9 @@ func (s prettyStack) decorateSourceLine(line string, useColor bool, num int) (st
 }
 
 var (
-	// Normal colors
-	nBlack   = []byte{'\033', '[', '3', '0', 'm'}
-	nRed     = []byte{'\033', '[', '3', '1', 'm'}
-	nGreen   = []byte{'\033', '[', '3', '2', 'm'}
 	nYellow  = []byte{'\033', '[', '3', '3', 'm'}
-	nBlue    = []byte{'\033', '[', '3', '4', 'm'}
-	nMagenta = []byte{'\033', '[', '3', '5', 'm'}
-	nCyan    = []byte{'\033', '[', '3', '6', 'm'}
-	nWhite   = []byte{'\033', '[', '3', '7', 'm'}
-	// Bright colors
-	bBlack   = []byte{'\033', '[', '3', '0', ';', '1', 'm'}
 	bRed     = []byte{'\033', '[', '3', '1', ';', '1', 'm'}
 	bGreen   = []byte{'\033', '[', '3', '2', ';', '1', 'm'}
-	bYellow  = []byte{'\033', '[', '3', '3', ';', '1', 'm'}
 	bBlue    = []byte{'\033', '[', '3', '4', ';', '1', 'm'}
 	bMagenta = []byte{'\033', '[', '3', '5', ';', '1', 'm'}
 	bCyan    = []byte{'\033', '[', '3', '6', ';', '1', 'm'}
@@ -257,10 +249,12 @@ func init() {
 // colorWrite
 func cW(w io.Writer, useColor bool, color []byte, s string, args ...interface{}) {
 	if IsTTY && useColor {
+		//nolint:errcheck
 		w.Write(color)
 	}
 	fmt.Fprintf(w, s, args...)
 	if IsTTY && useColor {
+		//nolint:errcheck
 		w.Write(reset)
 	}
 }

@@ -60,6 +60,7 @@ func RandomString(n int) string {
 
 	// In case of error we return a non-crypto safe string
 	if err != nil {
+		//nolint:staticcheck
 		rand.Seed(time.Now().UTC().UnixNano())
 		bm := make([]byte, n)
 		for i := range b {

@@ -3,7 +3,6 @@ package middlewares
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -47,6 +46,7 @@ func TestRecoverer(t *testing.T) {
 func TestRecovererAbortHandler(t *testing.T) {
 	defer func() {
 		rcv := recover()
+		//nolint:errorlint
 		if rcv != http.ErrAbortHandler {
 			t.Fatalf("http.ErrAbortHandler should not be recovered")
 		}
@@ -108,6 +108,7 @@ func (c custom) Parse(debugStack []byte, rvr interface{}) ([]byte, error) {
 	return debugStack, nil
 }
 
+//nolint:unparam
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body io.Reader) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, body)
 	if err != nil {
@@ -121,7 +122,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body io
 		return nil, ""
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
 		return nil, ""
