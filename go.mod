@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ses v1.15.0
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/fsnotify/fsnotify v1.5.1
-	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.0
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/google/uuid v1.3.0
