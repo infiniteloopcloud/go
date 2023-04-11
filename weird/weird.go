@@ -26,7 +26,10 @@ func New(msg string, err error, statusCode int) error {
 
 // Error satisfy the error interface and format the error
 func (e Error) Error() string {
-	return e.InnerError.Error()
+	if e.InnerError != nil {
+		return e.InnerError.Error()
+	}
+	return e.Msg
 }
 
 // Is helps to manage the errors.Is
