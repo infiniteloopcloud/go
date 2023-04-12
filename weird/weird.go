@@ -24,6 +24,13 @@ func New(msg string, err error, statusCode int) error {
 	}
 }
 
+func NewOrElse(msg string, err error, statusCode int) error {
+	if _, ok := err.(Error); ok {
+		return err
+	}
+	return New(msg, err, statusCode)
+}
+
 // Error satisfy the error interface and format the error
 func (e Error) Error() string {
 	if e.InnerError != nil {
