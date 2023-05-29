@@ -72,6 +72,10 @@ func PrintPrettyStack(ctx context.Context, rvr interface{}) {
 	}
 }
 
+func SetRecovererErrorWriter(w io.Writer) {
+	recovererErrorWriter = w
+}
+
 func SetRecoverParser(p RecoverParserIface) {
 	RecoverParser = p
 }
@@ -264,15 +268,11 @@ func cW(w io.Writer, useColor bool, color []byte, s string, args ...interface{})
 type RecovererLogStack struct{}
 
 func (l RecovererLogStack) Parse(ctx context.Context, debugStack []byte, rvr interface{}) ([]byte, error) {
-	var err error
-	if rErr, ok := rvr.(error); ok {
-		err = rErr
-	} else {
-		err = errors.New("unknown panic happen")
-	}
-	parsedLog := log.Parse(ctx, log.ErrorLevelString, "panic happen", err, log.Field{
-		Key:   "debug_stack",
-		Value: strings.Join(strings.Split(string(debugStack), "\n"), "|"),
-	})
+	parsedLog := log.Parse(ctx, log.ErrorLevelString, "panic happen",
+		fmt.Errorf("panic happen: %v", rvr),
+		log.Field{
+			Key:   "debug_stack",
+			Value: strings.Join(strings.Split(string(debugStack), "\n"), "|"),
+		})
 	return []byte(parsedLog), nil
 }
