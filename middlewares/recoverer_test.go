@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -99,7 +100,7 @@ func TestRecovererCustomParser(t *testing.T) {
 
 type custom struct{}
 
-func (c custom) Parse(debugStack []byte, rvr interface{}) ([]byte, error) {
+func (c custom) Parse(_ context.Context, debugStack []byte, rvr interface{}) ([]byte, error) {
 	stack := strings.Split(string(debugStack), "\n")
 
 	if len(stack) > 0 {
