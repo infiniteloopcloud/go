@@ -5,6 +5,7 @@ package middlewares
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,10 +15,11 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/infiniteloopcloud/log"
 )
 
 type RecoverParserIface interface {
-	Parse(debugStack []byte, rvr interface{}) ([]byte, error)
+	Parse(ctx context.Context, debugStack []byte, rvr interface{}) ([]byte, error)
 }
 
 var RecoverParser RecoverParserIface = prettyStack{}
@@ -42,7 +44,7 @@ func Recoverer(next http.Handler) http.Handler {
 				if logEntry != nil {
 					logEntry.Panic(rvr, debug.Stack())
 				} else {
-					PrintPrettyStack(rvr)
+					PrintPrettyStack(r.Context(), rvr)
 				}
 
 				w.WriteHeader(http.StatusInternalServerError)
@@ -58,9 +60,9 @@ func Recoverer(next http.Handler) http.Handler {
 // for ability to test the PrintPrettyStack function
 var recovererErrorWriter io.Writer = os.Stderr
 
-func PrintPrettyStack(rvr interface{}) {
+func PrintPrettyStack(ctx context.Context, rvr interface{}) {
 	debugStack := debug.Stack()
-	out, err := RecoverParser.Parse(debugStack, rvr)
+	out, err := RecoverParser.Parse(ctx, debugStack, rvr)
 	if err == nil {
 		//nolint:errcheck
 		recovererErrorWriter.Write(out)
@@ -77,7 +79,7 @@ func SetRecoverParser(p RecoverParserIface) {
 type prettyStack struct {
 }
 
-func (s prettyStack) Parse(debugStack []byte, rvr interface{}) ([]byte, error) {
+func (s prettyStack) Parse(_ context.Context, debugStack []byte, rvr interface{}) ([]byte, error) {
 	var err error
 	useColor := true
 	buf := &bytes.Buffer{}
@@ -257,4 +259,20 @@ func cW(w io.Writer, useColor bool, color []byte, s string, args ...interface{})
 		//nolint:errcheck
 		w.Write(reset)
 	}
+}
+
+type RecovererLogStack struct{}
+
+func (l RecovererLogStack) Parse(ctx context.Context, debugStack []byte, rvr interface{}) ([]byte, error) {
+	var err error
+	if rErr, ok := rvr.(error); ok {
+		err = rErr
+	} else {
+		err = errors.New("unknown panic happen")
+	}
+	parsedLog := log.Parse(ctx, log.ErrorLevelString, "panic happen", err, log.Field{
+		Key:   "debug_stack",
+		Value: strings.Join(strings.Split(string(debugStack), "\n"), "|"),
+	})
+	return []byte(parsedLog), nil
 }
