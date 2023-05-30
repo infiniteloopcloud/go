@@ -13,7 +13,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/google/uuid v1.3.0
 	github.com/infiniteloopcloud/hyper v0.4.0
-	github.com/infiniteloopcloud/log v0.1.4-0.20230529200239-98e6b1a92cdf
+	github.com/infiniteloopcloud/log v0.1.4
 	github.com/infiniteloopcloud/xss-validator v0.0.0-20220701051113-03673195f8e1
 	github.com/lib/pq v1.10.4
 	github.com/pascaldekloe/jwt v1.10.0
@@ -42,7 +42,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
-	github.com/infiniteloopcloud/weird v0.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
