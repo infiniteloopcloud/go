@@ -27,6 +27,7 @@ func CustomLog(opts ...LogOpts) func(next http.Handler) http.Handler {
 			rw := hyper.NewWriter(w)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(rw, r)
+			log.Debug(ctx, rw.ResponseBody())
 		})
 	}
 }
