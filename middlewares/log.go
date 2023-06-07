@@ -35,8 +35,8 @@ func CustomLog(opts ...LogOpts) func(next http.Handler) http.Handler {
 func LogResponse() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rw, isHyperWriter := w.(*hyper.Writer)
-			if !isHyperWriter {
+			rw, ok := w.(*hyper.Writer)
+			if !ok {
 				rw = hyper.NewWriter(w)
 			}
 			next.ServeHTTP(rw, r)
