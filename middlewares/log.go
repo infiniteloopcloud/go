@@ -12,8 +12,7 @@ type LogOpts struct {
 	LogLevel uint8
 }
 
-// CustomLog middleware is responsible for setting the logLevel,
-// and also logs the response body
+// CustomLog middleware is responsible for setting the logLevel
 func CustomLog(opts ...LogOpts) func(next http.Handler) http.Handler {
 	var o LogOpts
 	if len(opts) == 1 {
