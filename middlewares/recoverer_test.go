@@ -3,6 +3,8 @@ package middlewares
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func panicingHandler(http.ResponseWriter, *http.Request) { panic("foo") }
@@ -96,6 +100,42 @@ func TestRecovererCustomParser(t *testing.T) {
 		return
 	}
 	t.Fatal("First func call line should be something like 'goroutine 18 [running]:'")
+}
+
+// TestRecovererLogStack_ParseDebugStackLimit is testing if the debug_stack string cut was successful
+// if the limit is less than the length of the debug_stack
+func TestRecovererLogStack_ParseDebugStackLimit(t *testing.T) {
+	ls := RecovererLogStack{DebugStackLengthLimit: 1024}
+	a1000 := strings.Repeat("a", 1000)
+	b1000 := strings.Repeat("b", 1000)
+	parse, err := ls.Parse(context.Background(), []byte(a1000+b1000), errors.New("some panic"))
+	require.NoError(t, err)
+	var labels map[string]interface{}
+	require.NoError(t, json.Unmarshal(parse, &labels))
+	debugStackI, ok := labels["debug_stack"]
+	require.True(t, ok, "missing debug stack field")
+	debugStackStr, ok := debugStackI.(string)
+	require.True(t, ok, "invalid debug stack type")
+	assert.Contains(t, debugStackStr, a1000)
+	assert.Contains(t, debugStackStr, strings.Repeat("b", 24))
+}
+
+// TestRecovererLogStack_ParseDebugStackLimit is testing if the debug_stack string cut was successful
+// if the limit is greater than the length of the debug_stack
+func TestRecovererLogStack_ParseDebugStackLimit2(t *testing.T) {
+	ls := RecovererLogStack{DebugStackLengthLimit: 1024}
+	a100 := strings.Repeat("a", 100)
+	b100 := strings.Repeat("b", 100)
+	parse, err := ls.Parse(context.Background(), []byte(a100+b100), errors.New("some panic"))
+	require.NoError(t, err)
+	var labels map[string]interface{}
+	require.NoError(t, json.Unmarshal(parse, &labels))
+	debugStackI, ok := labels["debug_stack"]
+	require.True(t, ok, "missing debug stack field")
+	debugStackStr, ok := debugStackI.(string)
+	require.True(t, ok, "invalid debug stack type")
+	assert.Contains(t, debugStackStr, a100)
+	assert.Contains(t, debugStackStr, b100)
 }
 
 type custom struct{}

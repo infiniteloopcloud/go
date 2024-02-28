@@ -265,14 +265,22 @@ func cW(w io.Writer, useColor bool, color []byte, s string, args ...interface{})
 	}
 }
 
-type RecovererLogStack struct{}
+type RecovererLogStack struct {
+	DebugStackLengthLimit int
+}
 
 func (l RecovererLogStack) Parse(ctx context.Context, debugStack []byte, rvr interface{}) ([]byte, error) {
+	debugStackMsgWrapped := strings.Join(strings.Split(string(debugStack), "\n"), "|")
+	if l.DebugStackLengthLimit > 0 {
+		if lenDebugStack := len(debugStackMsgWrapped); lenDebugStack > l.DebugStackLengthLimit {
+			debugStackMsgWrapped = debugStackMsgWrapped[:l.DebugStackLengthLimit]
+		}
+	}
 	parsedLog := log.Parse(ctx, log.ErrorLevelString, "panic happen",
 		fmt.Errorf("panic happen: %v", rvr),
 		log.Field{
 			Key:   "debug_stack",
-			Value: strings.Join(strings.Split(string(debugStack), "\n"), "|"),
+			Value: debugStackMsgWrapped,
 		})
 	return []byte(parsedLog), nil
 }
