@@ -11,20 +11,40 @@ var (
 	refererHeaderKey  = "Referer"
 )
 
-func SetHTTPOnly(r *http.Request, w http.ResponseWriter, k, v string) {
-	setCookie(r, w, k, v, opts{HttpOnly: true})
+type Opts struct {
+	Domain string
 }
 
-func DeleteHTTPOnly(r *http.Request, w http.ResponseWriter, k string) {
-	setCookie(r, w, k, "", opts{Remove: true, HttpOnly: true})
+func SetHTTPOnly(r *http.Request, w http.ResponseWriter, k, v string, o ...Opts) {
+	inner := opts{HttpOnly: true}
+	if outer := getOpts(o...); outer.Domain != "" {
+		inner.Domain = outer.Domain
+	}
+	setCookie(r, w, k, v, inner)
 }
 
-func Set(r *http.Request, w http.ResponseWriter, k, v string) {
-	setCookie(r, w, k, v, opts{})
+func DeleteHTTPOnly(r *http.Request, w http.ResponseWriter, k string, o ...Opts) {
+	inner := opts{Remove: true, HttpOnly: true}
+	if outer := getOpts(o...); outer.Domain != "" {
+		inner.Domain = outer.Domain
+	}
+	setCookie(r, w, k, "", inner)
 }
 
-func Delete(r *http.Request, w http.ResponseWriter, k string) {
-	setCookie(r, w, k, "", opts{Remove: true})
+func Set(r *http.Request, w http.ResponseWriter, k, v string, o ...Opts) {
+	inner := opts{}
+	if outer := getOpts(o...); outer.Domain != "" {
+		inner.Domain = outer.Domain
+	}
+	setCookie(r, w, k, v, inner)
+}
+
+func Delete(r *http.Request, w http.ResponseWriter, k string, o ...Opts) {
+	inner := opts{Remove: true}
+	if outer := getOpts(o...); outer.Domain != "" {
+		inner.Domain = outer.Domain
+	}
+	setCookie(r, w, k, "", inner)
 }
 
 func SetDomain(r *regexp.Regexp) {
@@ -38,6 +58,7 @@ func SetSecure(s bool) {
 type opts struct {
 	Remove   bool
 	HttpOnly bool
+	Domain   string
 }
 
 func setCookie(r *http.Request, w http.ResponseWriter, name, value string, opts opts) {
@@ -62,9 +83,20 @@ func setCookie(r *http.Request, w http.ResponseWriter, name, value string, opts 
 		c.Domain = cookieDomainRegex.FindString(r.Header.Get(refererHeaderKey))
 	}
 
+	if opts.Domain != "" {
+		c.Domain = opts.Domain
+	}
+
 	if cookieSecure {
 		c.Secure = true
 	}
 
 	http.SetCookie(w, &c)
+}
+
+func getOpts(o ...Opts) Opts {
+	if len(o) == 1 {
+		return o[0]
+	}
+	return Opts{}
 }
