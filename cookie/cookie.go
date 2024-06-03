@@ -12,38 +12,34 @@ var (
 )
 
 type Opts struct {
-	Domain string
+	Domain   string
+	SameSite http.SameSite
 }
 
 func SetHTTPOnly(r *http.Request, w http.ResponseWriter, k, v string, o ...Opts) {
-	inner := opts{HttpOnly: true}
-	if outer := getOpts(o...); outer.Domain != "" {
-		inner.Domain = outer.Domain
-	}
+	inner := fromOpts(o...)
+	inner.HttpOnly = true
+
 	setCookie(r, w, k, v, inner)
 }
 
 func DeleteHTTPOnly(r *http.Request, w http.ResponseWriter, k string, o ...Opts) {
-	inner := opts{Remove: true, HttpOnly: true}
-	if outer := getOpts(o...); outer.Domain != "" {
-		inner.Domain = outer.Domain
-	}
+	inner := fromOpts(o...)
+	inner.HttpOnly = true
+	inner.Remove = true
+
 	setCookie(r, w, k, "", inner)
 }
 
 func Set(r *http.Request, w http.ResponseWriter, k, v string, o ...Opts) {
-	inner := opts{}
-	if outer := getOpts(o...); outer.Domain != "" {
-		inner.Domain = outer.Domain
-	}
+	inner := fromOpts(o...)
 	setCookie(r, w, k, v, inner)
 }
 
 func Delete(r *http.Request, w http.ResponseWriter, k string, o ...Opts) {
-	inner := opts{Remove: true}
-	if outer := getOpts(o...); outer.Domain != "" {
-		inner.Domain = outer.Domain
-	}
+	inner := fromOpts(o...)
+	inner.Remove = true
+
 	setCookie(r, w, k, "", inner)
 }
 
@@ -59,6 +55,19 @@ type opts struct {
 	Remove   bool
 	HttpOnly bool
 	Domain   string
+	SameSite http.SameSite
+}
+
+func fromOpts(o ...Opts) opts {
+	inner := opts{}
+	outer := getOpts(o...)
+
+	if outer.Domain != "" {
+		inner.Domain = outer.Domain
+	}
+	inner.SameSite = outer.SameSite
+
+	return inner
 }
 
 func setCookie(r *http.Request, w http.ResponseWriter, name, value string, opts opts) {
@@ -67,6 +76,9 @@ func setCookie(r *http.Request, w http.ResponseWriter, name, value string, opts 
 		Value:    value,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
+	}
+	if opts.SameSite != 0 {
+		c.SameSite = opts.SameSite
 	}
 
 	if opts.HttpOnly {
