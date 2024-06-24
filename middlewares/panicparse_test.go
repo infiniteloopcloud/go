@@ -17,11 +17,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type panicParserWrtier struct {
+type panicParserWriter struct {
 	b *bytes.Buffer
 }
 
-func (w *panicParserWrtier) Write(b []byte) (n int, err error) {
+func (w *panicParserWriter) Write(b []byte) (n int, err error) {
 	w.b.Write(b)
 	w.b.WriteByte(byte('\n'))
 	return len(b) + 1, nil
@@ -33,7 +33,7 @@ func TestPanicParser_Parse(t *testing.T) {
 	var parsed []stackLine
 	oldRecovererErrorWriter := recovererErrorWriter
 	defer func() { recovererErrorWriter = oldRecovererErrorWriter }()
-	w := panicParserWrtier{b: bytes.NewBuffer(nil)}
+	w := panicParserWriter{b: bytes.NewBuffer(nil)}
 	recovererErrorWriter = &w
 
 	r.Use(Recoverer)
