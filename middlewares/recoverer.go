@@ -12,9 +12,12 @@ import (
 	"net/http"
 	"os"
 	"runtime/debug"
+	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 	"github.com/infiniteloopcloud/log"
 )
 
@@ -23,6 +26,8 @@ type RecoverParserIface interface {
 }
 
 var RecoverParser RecoverParserIface = prettyStack{}
+
+type PrintPrettyStackFn func(ctx context.Context, rvr interface{})
 
 // Recoverer is a middleware that recovers from panics, logs the panic (and a
 // backtrace), and returns a HTTP 500 (Internal Server Error) status if
@@ -44,7 +49,8 @@ func Recoverer(next http.Handler) http.Handler {
 				if logEntry != nil {
 					logEntry.Panic(rvr, debug.Stack())
 				} else {
-					PrintPrettyStack(r.Context(), rvr)
+					// nolint:forbidigo
+					printPrettyStackFn(r.Context(), rvr)
 				}
 
 				w.WriteHeader(http.StatusInternalServerError)
@@ -60,6 +66,8 @@ func Recoverer(next http.Handler) http.Handler {
 // for ability to test the PrintPrettyStack function
 var recovererErrorWriter io.Writer = os.Stderr
 
+var printPrettyStackFn = PrintPrettyStack
+
 func PrintPrettyStack(ctx context.Context, rvr interface{}) {
 	debugStack := debug.Stack()
 	out, err := RecoverParser.Parse(ctx, debugStack, rvr)
@@ -72,12 +80,55 @@ func PrintPrettyStack(ctx context.Context, rvr interface{}) {
 	}
 }
 
+func MultilinePrettyPrintStack(ctx context.Context, rvr interface{}) {
+	debugStack := debug.Stack()
+	parsed, err := panicParser{}.Parse(debugStack)
+	if err != nil {
+		os.Stderr.Write(debugStack)
+		return
+	}
+	multilinePrettyPrint(ctx, rvr, parsed)
+}
+
+func multilinePrettyPrint(ctx context.Context, rvr interface{}, parsed []stackLine) {
+	slices.Reverse(parsed)
+	panicID := uuid.NewString()
+	for _, line := range parsed {
+		logLine := log.Parse(ctx, log.ErrorLevelString, "panic happen",
+			fmt.Errorf("panic happen: %v", rvr),
+			log.Field{
+				Key:   "panic_id",
+				Value: panicID,
+			},
+			log.Field{
+				Key:   "function_name",
+				Value: line.FunctionName,
+			},
+			log.Field{
+				Key:   "file_path",
+				Value: line.FilePath,
+			},
+			log.Field{
+				Key:   "line_number",
+				Value: strconv.Itoa(line.LineNumber),
+			},
+		)
+		// nolint: errcheck
+		recovererErrorWriter.Write([]byte(logLine))
+	}
+}
+
 func SetRecovererErrorWriter(w io.Writer) {
 	recovererErrorWriter = w
 }
 
 func SetRecoverParser(p RecoverParserIface) {
 	RecoverParser = p
+}
+
+// nolint:forbidigo
+func SetPrintPrettyStack(fn PrintPrettyStackFn) {
+	printPrettyStackFn = fn
 }
 
 type prettyStack struct {
