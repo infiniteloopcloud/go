@@ -100,6 +100,23 @@ func MigrationTool(conn string, down bool, opts Opts, embeds ...embed.FS) {
 	log.Info(ctx, "migration succeed")
 }
 
+func MigrationToolWithError(conn string, down bool, opts Opts, embeds ...embed.FS) error {
+	ctx := context.Background()
+	m, err := Get(ctx, conn, opts, embeds...)
+	if err != nil {
+		return err
+	}
+	if m == nil {
+		return errors.New("migration is nil")
+	}
+	if down {
+		err = m.Down()
+	} else {
+		err = m.Up()
+	}
+	return err
+}
+
 func PrepareCockroach(conn string) string {
 	return strings.Replace(conn, "postgres://", "cockroach://", 1)
 }
