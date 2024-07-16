@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var fileDetails = regexp.MustCompile(`^(/([\w-._]+/)*([\w-]+\.[a-z]+)):(\d+)\s(\+0x[0-9a-fA-F]+$)`)
+var fileDetails = regexp.MustCompile(`^(/([\w-._]+/)*([\w-]+\.[a-z]+)):(\d+)\s?(\+0x[0-9a-fA-F]+$)?`)
 var tabsNewlinesRegexp = regexp.MustCompile(`[\t\n]+`)
 
 type stackFlags struct {
