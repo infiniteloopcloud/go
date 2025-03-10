@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -115,6 +116,34 @@ func MigrationToolWithError(conn string, down bool, opts Opts, embeds ...embed.F
 		err = m.Up()
 	}
 	return err
+}
+
+func MigrationToolWithErrorCtx(ctx context.Context, conn string, down bool, opts Opts, embeds ...embed.FS) error {
+	resultCh := make(chan error, 1)
+	go func() {
+		m, err := Get(ctx, conn, opts, embeds...)
+		if err != nil {
+			resultCh <- err
+			return
+		}
+		if m == nil {
+			resultCh <- errors.New("migration is nil")
+			return
+		}
+
+		if down {
+			resultCh <- m.Down()
+		} else {
+			resultCh <- m.Up()
+		}
+	}()
+
+	select {
+	case err := <-resultCh:
+		return err
+	case <-ctx.Done():
+		return fmt.Errorf("migration operation timed out: %w", ctx.Err())
+	}
 }
 
 func PrepareCockroach(conn string) string {
